@@ -51,6 +51,9 @@ last_distance = 0
 # Creating the car class
 
 class Car(Widget):
+    """ 
+    Creating a car class to provide movement, speed, sensors and positioning
+    """
     
     angle = NumericProperty(0)
     rotation = NumericProperty(0)
@@ -71,6 +74,9 @@ class Car(Widget):
     signal3 = NumericProperty(0)
 
     def move(self, rotation):
+        """ 
+        move() allows the car to move, forward, left or right
+        """
         self.pos = Vector(*self.velocity) + self.pos
         self.rotation = rotation
         self.angle = self.angle + self.rotation
@@ -80,12 +86,12 @@ class Car(Widget):
         self.signal1 = int(np.sum(sand[int(self.sensor1_x)-10:int(self.sensor1_x)+10, int(self.sensor1_y)-10:int(self.sensor1_y)+10]))/400.
         self.signal2 = int(np.sum(sand[int(self.sensor2_x)-10:int(self.sensor2_x)+10, int(self.sensor2_y)-10:int(self.sensor2_y)+10]))/400.
         self.signal3 = int(np.sum(sand[int(self.sensor3_x)-10:int(self.sensor3_x)+10, int(self.sensor3_y)-10:int(self.sensor3_y)+10]))/400.
-        if self.sensor1_x>longueur-10 or self.sensor1_x<10 or self.sensor1_y>largeur-10 or self.sensor1_y<10:
-            self.signal1 = 1.
-        if self.sensor2_x>longueur-10 or self.sensor2_x<10 or self.sensor2_y>largeur-10 or self.sensor2_y<10:
-            self.signal2 = 1.
-        if self.sensor3_x>longueur-10 or self.sensor3_x<10 or self.sensor3_y>largeur-10 or self.sensor3_y<10:
-            self.signal3 = 1.
+        if self.sensor1_x > longueur-10 or self.sensor1_x<10 or self.sensor1_y>largeur-10 or self.sensor1_y<10: # if sensor 1 is out of the map (the car is facing one edge of the map)
+            self.signal1 = 1. # sensor 1 detects full sand
+        if self.sensor2_x > longueur-10 or self.sensor2_x<10 or self.sensor2_y>largeur-10 or self.sensor2_y<10: # if sensor 2 is out of the map (the car is facing one edge of the map)
+            self.signal2 = 1. # sensor 2 detects full sand
+        if self.sensor3_x > longueur-10 or self.sensor3_x<10 or self.sensor3_y>largeur-10 or self.sensor3_y<10: # if sensor 3 is out of the map (the car is facing one edge of the map)
+            self.signal3 = 1. # sensor 3 detects full sand
 
 class Ball1(Widget):
     pass
@@ -97,6 +103,9 @@ class Ball3(Widget):
 # Creating the game class
 
 class Game(Widget):
+    """ 
+    The game that the AI will be playing and to avoid the obstacles 
+    """
 
     car = ObjectProperty(None)
     ball1 = ObjectProperty(None)
@@ -136,10 +145,11 @@ class Game(Widget):
         self.ball2.pos = self.car.sensor2
         self.ball3.pos = self.car.sensor3
 
+        # The car moved onto some sand
         if sand[int(self.car.x),int(self.car.y)] > 0:
             self.car.velocity = Vector(1, 0).rotate(self.car.angle)
             last_reward = -1
-        else: # otherwise
+        else: # Car did not move onto sand
             self.car.velocity = Vector(6, 0).rotate(self.car.angle)
             last_reward = -0.2
             if distance < last_distance:
@@ -166,6 +176,9 @@ class Game(Widget):
 # Adding the painting tools
 
 class MyPaintWidget(Widget):
+    """ 
+    Adding the painting tools to add the roads and obstacles on the map
+    """
 
     def on_touch_down(self, touch):
         global length, n_points, last_x, last_y
@@ -193,9 +206,12 @@ class MyPaintWidget(Widget):
             last_x = x
             last_y = y
 
-# Adding the API Buttons (clear, save and load)
+# Adding the API Buttons
 
 class CarApp(App):
+    """ 
+    Adding the API Buttons (clear, save and load)
+    """
 
     def build(self):
         parent = Game()
@@ -226,7 +242,7 @@ class CarApp(App):
         plt.show()
 
     def load(self, obj):
-        print("loading last saved brain...")
+        print("loading the last saved brain...")
         brain.load()
 
 # Running the whole thing
