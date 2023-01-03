@@ -19,9 +19,6 @@ import torch.optim as optim
 import torch.autograd as autograd
 from torch.autograd import Variable
 
-# input layer, composed of 5 input neurons (5D for the encoded vector of the input state)
-# output layer, the possible actions that can be played at a given state  
-
 class Network(nn.Module):
     """
     Neural Network that will decide which actions to take.
@@ -46,13 +43,52 @@ class Network(nn.Module):
         """
         forward() performs forward propagation and activates the neurons in the NN (signals).
         Using the rectifier activation function because we are dealing with a non-linear problem.
-        :param self: refers to the object created from the Network class
+        :param self: refers to the object instance created from the Network class
         :param state: the input of the NN  
         :return: The Q-values, the outputs of the NN. One Q-value for each action
         """
         x = F.relu(self.fc1(state)) # relu -> the rectifier function
         q_values = self.fc2(x)
         return q_values
+
+class ReplayMemory(object):
+    """
+    Implementing experience replay. Keeping track of up to capacity, or 100 in our program, 
+    states previous to the current state.
+    """
+
+    def __init__(self, capacity):
+        """
+        Define the variables attached to the ReplayMemory. This acts as 
+        the architecture of the NN.
+        :param self: refers to an instance of a ReplayMemory object        
+        :param capacity: the long term memory capacity
+        """
+        self.capacity = capacity
+        self.memory = [] # store the last 100 events
+
+    def push(self, event):
+        """
+        Add a new event to memory.
+        :param self: refers to an instance of a ReplayMemory object
+        :param event: the new event to be appended to memory (st, st+1, at, rt)
+        """
+        self.memory.append(event)
+
+        # Delete oldest memory if capacity is at its limit
+        if len(self.memory) > self.capacity:
+            del self.memory[0]
+
+    def sample(self, batch_size):
+        """
+        Takes ransom samples from memory to improve the Deep Q-Learning process.
+        :param self: refers to an instance of a ReplayMemory object
+        :param batch_size: the size of the stochastic/ mini batch gradient descent
+        :return: return the randomly chosen samples 
+        """
+        # if list = ((1,2,3), (4,5,6)) -> zip(*list) = ((1,4) (2,3), (5,6))
+        samples = zip(*random.sample(self.memory, batch_size)) # grab the random samples
+        return map(lambda x: Variable(torch.cat(x, 0)), samples) # put each sample into a torch variable that contains a tensor and a gradient
 
 
 
